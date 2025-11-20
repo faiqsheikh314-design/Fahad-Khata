@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KHATA - Digital Ledger</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .font-inter {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #6C4CF1;
+            border-radius: 10px;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInZoom {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        .fade-in-zoom {
+            animation: fadeInZoom 1s ease-out;
+        }
+        
+        .bounce-animation {
+            animation: bounce 0.5s ease-in-out;
+        }
+        
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        /* Hide scrollbar for certain elements */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Gradient backgrounds */
+        .gradient-purple {
+            background: linear-gradient(135deg, #6C4CF1 0%, #8F6BFF 100%);
+        }
+        
+        .gradient-accent {
+            background: linear-gradient(135deg, #FFD85C 0%, #38BFC3 100%);
+        }
+        
+        /* Card shadows */
+        .card-shadow {
+            box-shadow: 0 4px 20px rgba(108, 76, 241, 0.1);
+        }
+        
+        /* Button styles */
+        .btn-primary {
+            background: linear-gradient(135deg, #6C4CF1 0%, #8F6BFF 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(108, 76, 241, 0.3);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6C4CF1',
+                        secondary: '#8F6BFF',
+                        background: '#F4F1FF',
+                        accent1: '#FFD85C',
+                        accent2: '#38BFC3',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background">
+
+    <!-- SPLASH SCREEN - Model B Optimized -->
+    <div id="splashScreen" class="fixed inset-0 gradient-purple flex flex-col items-center justify-center z-50">
+        <div class="fade-in-zoom w-full max-w-sm px-4">
+            <!-- Responsive Logo Container -->
+            <div class="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 bg-white rounded-full mb-4 sm:mb-5 md:mb-6 flex items-center justify-center overflow-hidden mx-auto">
+                <svg class="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+                </svg>
+            </div>
+            <!-- Responsive Text -->
+            <h1 class="text-4xl sm:text-5xl font-bold text-white mb-2 text-center">KHATA</h1>
+            <p class="text-white text-sm opacity-90 text-center">Created by Faiq Sheikh</p>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="appContainer" class="hidden min-h-screen pb-20">
+        
+        <!-- HOME SCREEN -->
+        <div id="homeScreen" class="screen">
+            <!-- Header -->
+            <div class="gradient-purple p-6 pb-12 rounded-b-3xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold text-white">KHATA</h1>
+                    <div id="profileIcon" class="w-10 h-10 bg-white rounded-full overflow-hidden cursor-pointer">
+                        <svg class="w-full h-full text-primary p-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <!-- Total Balance Card -->
+                <div class="bg-white/20 backdrop-blur-lg rounded-2xl p-6 fade-in">
+                    <p class="text-white/80 text-sm mb-2">Total Balance</p>
+                    <h2 id="totalBalance" class="text-4xl font-bold text-white">₨ 0</h2>
+                </div>
+            </div>
+            
+            <!-- Accounts List -->
+            <div class="p-6 -mt-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">My Accounts</h3>
+                <div id="accountsList" class="space-y-4">
+                    <!-- Accounts will be dynamically loaded here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- ADD ENTRY SCREEN -->
+        <div id="addEntryScreen" class="screen hidden">
+            <div class="gradient-purple p-6 rounded-b-3xl">
+                <div class="flex items-center mb-6">
+                    <button onclick="showScreen('homeScreen')" class="text-white mr-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <h1 class="text-2xl font-bold text-white">Add Entry</h1>
+                </div>
+            </div>
+            
+            <div class="p-6 slide-up">
+                <form id="addEntryForm" class="space-y-4">
+                    <!-- Transaction Type -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Transaction Type</label>
+                        <select id="transactionType" class="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-primary outline-none transition">
+                            <option value="add">Add Money</option>
+                            <option value="use">Use Money</option>
+                            <option value="transfer">Transfer</option>
+                        </select>
+                    </div>
+                    
+                    <!-- From Account -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">From Account</label>
+                        <select id="fromAccount" class="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-primary outline-none transition">
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+                    
+                    <!-- To Account (for transfers) -->
+                    <div id="toAccountDiv" class="hidden">
+                        <label class="block text-gray-700 font-medium mb-2">To Account</label>
+                        <select id="toAccount" class="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-primary outline-none transition">
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+                    
+                    <!-- Amount -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Amount</label>
+                        <input type="number" id="amount" placeholder="0" class="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-primary outline-none transition" required min="0" step="0.01">
+                    </div>
+                    
+                    <!-- Note -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Note (Optional)</label>
+                        <input type="text" id="note" placeholder="Add a note..." class="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-primary outline-none transition">
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button type="submit" class="w-full btn-primary text-white font-semibold py-4 rounded-xl mt-6">
+                        Submit Transaction
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- ACCOUNT DETAIL SCREEN -->
+        <div id="accountDetailScreen" class="screen hidden">
+            <div class="gradient-purple p-6 rounded-b-3xl">
+                <div class="flex items-center mb-6">
+                    <button onclick="showScreen('homeScreen')" class="text-white mr-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <h1 id="accountDetailName" class="text-2xl font-bold text-white"></h1>
+                </div>
+                
+                <!-- Account Balance -->
+                <div class="bg-white/20 backdrop-blur-lg rounded-2xl p-6">
+                    <p class="text-white/80 text-sm mb-2">Current Balance</p>
+                    <h2 id="accountDetailBalance" class="text-4xl font-bold text-white">₨ 0</h2>
+                    <div class="flex justify-between mt-4 text-white/90 text-sm">
+                        <div>
+                            <p class="opacity-80">Total Added</p>
+                            <p id="accountTotalAdded" class="font-semibold">₨ 0</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="opacity-80">Total Used</p>
+                            <p id="accountTotalUsed" class="font-semibold">₨ 0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <button onclick="quickAddMoney()" class="bg-green-500 text-white font-semibold py-3 rounded-xl hover:bg-green-600 transition">
+                        Add Money
+                    </button>
+                    <button onclick="quickUseMoney()" class="bg-red-500 text-white font-semibold py-3 rounded-xl hover:bg-red-600 transition">
+                        Use Money
+                    </button>
+                    <button onclick="exportAccountPDF()" class="bg-blue-500 text-white font-semibold py-3 rounded-xl hover:bg-blue-600 transition">
+                        Export PDF
+                    </button>
+                    <button onclick="resetAccount()" class="bg-gray-500 text-white font-semibold py-3 rounded-xl hover:bg-gray-600 transition">
+                        Reset Account
+                    </button>
+                </div>
+                
+                <!-- Monthly Chart -->
+                <div class="bg-white rounded-2xl p-4 card-shadow mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-4">Monthly Overview</h3>
+                    <canvas id="accountChart"></canvas>
+                </div>
+                
+                <!-- Transaction History -->
+                <div class="bg-white rounded-2xl p-4 card-shadow">
+                    <h3 class="font-semibold text-gray-800 mb-4">Transaction History</h3>
+                    <div id="accountTransactionsList" class="space-y-3 max-h-96 overflow-y-auto no-scrollbar">
+                        <!-- Transactions will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- INSIGHTS SCREEN -->
+        <div id="insightsScreen" class="screen hidden">
+            <div class="gradient-purple p-6 rounded-b-3xl">
+                <h1 class="text-2xl font-bold text-white mb-6">Insights</h1>
+                
+                <div class="bg-white/20 backdrop-blur-lg rounded-2xl p-6">
+                    <p class="text-white/80 text-sm mb-2">Total Spending</p>
+                    <h2 id="totalSpending" class="text-4xl font-bold text-white">₨ 0</h2>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <!-- Monthly Income Chart -->
+                <div class="bg-white rounded-2xl p-4 card-shadow mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-4">Monthly Income</h3>
+                    <canvas id="incomeChart"></canvas>
+                </div>
+                
+                <!-- Monthly Expense Chart -->
+                <div class="bg-white rounded-2xl p-4 card-shadow mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-4">Monthly Expenses</h3>
+                    <canvas id="expenseChart"></canvas>
+                </div>
+                
+                <!-- Category Summary -->
+                <div class="bg-white rounded-2xl p-4 card-shadow mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-4">Category Summary</h3>
+                    <div id="categorySummary" class="space-y-3">
+                        <!-- Category items will be loaded here -->
+                    </div>
+                </div>
+                
+                <!-- Download Report -->
+                <button onclick="downloadMonthlyReport()" class="w-full btn-primary text-white font-semibold py-4 rounded-xl">
+                    Download Monthly Report
+                </button>
+            </div>
+        </div>
+        
+        <!-- HISTORY SCREEN -->
+        <div id="historyScreen" class="screen hidden">
+            <div class="gradient-purple p-6 rounded-b-3xl">
+                <h1 class="text-2xl font-bold text-white mb-6">Transaction History</h1>
+            </div>
+            
+            <div class="p-6">
+                <!-- Filters -->
+                <div class="bg-white rounded-2xl p-4 card-shadow mb-6">
+                    <div class="grid grid-cols-1 gap-4">
+                        <select id="filterAccount" class="p-3 rounded-xl border-2 border-gray-200 focus:border-primary outline-none transition">
+                            <option value="all">All Accounts</option>
+                        </select>
+                        
+                        <select id="filterType" class="p-3 rounded-xl border-2 border-gray-200 focus:border-primary outline-none transition">
+                            <option value="all">All Types</option>
+                            <option value="add">Add Money</option>
+                            <option value="use">Use Money</option>
+                            <option value="transfer">Transfer</option>
+                        </select>
+                        
+                        <input type="date" id="filterDate" class="p-3 rounded-xl border-2 border-gray-200 focus:border-primary outline-none transition">
+                        
+                        <button onclick="applyFilters()" class="btn-primary text-white font-semibold py-3 rounded-xl">
+                            Apply Filters
+                        </button>
+                        
+                        <button onclick="clearFilters()" class="bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-300 transition">
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- All Transactions -->
+                <div id="allTransactionsList" class="space-y-4">
+                    <!-- Transactions will be loaded here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- PROFILE SCREEN -->
+        <div id="profileScreen" class="screen hidden">
+            <div class="gradient-purple p-6 rounded-b-3xl">
+                <h1 class="text-2xl font-bold text-white mb-6">Profile</h1>
+                
+                <!-- Profile Image -->
+                <div class="flex flex-col items-center">
+                    <div id="profileImageContainer" class="w-32 h-32 bg-white rounded-full overflow-hidden mb-4 cursor-pointer">
+                        <img id="profileImage" class="w-full h-full object-cover hidden" alt="Profile">
+                        <svg id="profilePlaceholder" class="w-full h-full text-primary p-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+                        </svg>
+                    </div>
+                    <input type="file" id="profileImageInput" accept="image/*" class="hidden">
+                    <button onclick="document.getElementById('profileImageInput').click()" class="bg-white text-primary px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition">
+                        Change Photo
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <!-- Display Name -->
+                <div class="bg-white rounded-2xl p-4 sm:p-5 card-shadow mb-6 mx-2 sm:mx-0">
+                    <label class="block text-gray-700 font-medium mb-3 text-base">Display Name</label>
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                        <div class="flex-1 min-w-0">
+                            <input type="text" id="displayName" placeholder="Enter your name" class="w-full p-3 sm:p-4 rounded-xl border-2 border-gray-200 focus:border-primary outline-none transition text-base">
+                        </div>
+                        <button onclick="saveDisplayName()" class="btn-primary text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl font-semibold whitespace-nowrap flex-shrink-0">
+                            Save
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Data Management -->
+                <div class="bg-white rounded-2xl p-4 card-shadow mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-4">Data Management</h3>
+                    <div class="space-y-3">
+                        <button onclick="backupData()" class="w-full bg-blue-500 text-white font-semibold py-3 rounded-xl hover:bg-blue-600 transition">
+                            Backup Data (Export JSON)
+                        </button>
+                        <button onclick="document.getElementById('restoreInput').click()" class="w-full bg-green-500 text-white font-semibold py-3 rounded-xl hover:bg-green-600 transition">
+                            Restore Data (Import JSON)
+                        </button>
+                        <input type="file" id="restoreInput" accept=".json" class="hidden">
+                        <button onclick="resetAllData()" class="w-full bg-red-500 text-white font-semibold py-3 rounded-xl hover:bg-red-600 transition">
+                            Reset ALL Data
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- About -->
+                <div class="bg-white rounded-2xl p-4 card-shadow mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-4">About KHATA</h3>
+                    <p class="text-gray-600 text-sm mb-2">Version 1.0.0</p>
+                    <p class="text-gray-600 text-sm mb-2">A complete offline financial ledger app</p>
+                    <p class="text-gray-600 text-sm">All data is stored locally on your device</p>
+                </div>
+                
+                <!-- Footer -->
+                <div class="text-center text-gray-500 text-sm">
+                    <p>Made with ❤️ by Faiq Sheikh</p>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav id="bottomNav" class="hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-3 z-40">
+        <div class="flex justify-around items-center max-w-md mx-auto">
+            <button onclick="showScreen('homeScreen')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-primary transition">
+                <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                </svg>
+                <span class="text-xs">Home</span>
+            </button>
+            
+            <button onclick="showScreen('insightsScreen')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-primary transition">
+                <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                </svg>
+                <span class="text-xs">Insights</span>
+            </button>
+            
+            <button onclick="showScreen('addEntryScreen')" class="nav-btn -mt-6 w-14 h-14 btn-primary rounded-full flex items-center justify-center text-white shadow-lg bounce-animation">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+            </button>
+            
+            <button onclick="showScreen('historyScreen')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-primary transition">
+                <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                </svg>
+                <span class="text-xs">History</span>
+            </button>
+            
+            <button onclick="showScreen('profileScreen')" class="nav-btn flex flex-col items-center text-gray-400 hover:text-primary transition">
+                <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                </svg>
+                <span class="text-xs">Profile</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- SUCCESS TOAST -->
+    <div id="successToast" class="hidden fixed top-6 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg z-50 fade-in">
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <script>
+        // ========================================
+        // DATABASE SETUP (IndexedDB)
+        // ========================================
+        let db;
+        const DB_NAME = 'khata_db';
+        const DB_VERSION = 1;
+        
+        const DEFAULT_ACCOUNTS = [
+            { id: 1, name: 'Easypaisa', icon: '💳', balance: 0, totalAdded: 0, totalUsed: 0, color: '#38BFC3' },
+            { id: 2, name: 'JazzCash', icon: '💰', balance: 0, totalAdded: 0, totalUsed: 0, color: '#FF6B6B' },
+            { id: 3, name: 'NayaPay', icon: '🏦', balance: 0, totalAdded: 0, totalUsed: 0, color: '#FFD85C' },
+            { id: 4, name: 'Habib Metro', icon: '🏛️', balance: 0, totalAdded: 0, totalUsed: 0, color: '#6C4CF1' },
+            { id: 5, name: 'Cash', icon: '💵', balance: 0, totalAdded: 0, totalUsed: 0, color: '#4CAF50' },
+            { id: 6, name: 'Wallet', icon: '👛', balance: 0, totalAdded: 0, totalUsed: 0, color: '#8F6BFF' }
+        ];
+        
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    
+                    // Create object stores
+                    if (!db.objectStoreNames.contains('accounts')) {
+                        db.createObjectStore('accounts', { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains('transactions')) {
+                        const txStore = db.createObjectStore('transactions', { keyPath: 'id', autoIncrement: true });
+                        txStore.createIndex('accountId', 'accountId', { unique: false });
+                        txStore.createIndex('date', 'date', { unique: false });
+                        txStore.createIndex('type', 'type', { unique: false });
+                    }
+                    if (!db.objectStoreNames.contains('profile')) {
+                        db.createObjectStore('profile', { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains('settings')) {
+                        db.createObjectStore('settings', { keyPath: 'key' });
+                    }
+                };
+            });
+        }
+        
+        // ========================================
+        // DATA OPERATIONS
+        // ========================================
+        
+        async function initializeDefaultAccounts() {
+            const accounts = await getAllAccounts();
+            if (accounts.length === 0) {
+                for (const account of DEFAULT_ACCOUNTS) {
+                    await saveAccount(account);
+                }
+            }
+        }
+        
+        function saveAccount(account) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['accounts'], 'readwrite');
+                const store = transaction.objectStore('accounts');
+                const request = store.put(account);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        function getAllAccounts() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['accounts'], 'readonly');
+                const store = transaction.objectStore('accounts');
+                const request = store.getAll();
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        function getAccount(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['accounts'], 'readonly');
+                const store = transaction.objectStore('accounts');
+                const request = store.get(id);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        function saveTransaction(transaction) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(['transactions'], 'readwrite');
+                const store = tx.objectStore('transactions');
+                const request = store.add(transaction);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        function getAllTransactions() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['transactions'], 'readonly');
+                const store = transaction.objectStore('transactions');
+                const request = store.getAll();
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        function getAccountTransactions(accountId) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['transactions'], 'readonly');
+                const store = transaction.objectStore('transactions');
+                const index = store.index('accountId');
+                const request = index.getAll(accountId);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        function deleteAccountTransactions(accountId) {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const transactions = await getAccountTransactions(accountId);
+                    const tx = db.transaction(['transactions'], 'readwrite');
+                    const store = tx.objectStore('transactions');
+                    
+                    for (const transaction of transactions) {
+                        store.delete(transaction.id);
+                    }
+                    
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = () => reject(tx.error);
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+        
+        function clearAllData() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['accounts', 'transactions', 'profile', 'settings'], 'readwrite');
+                
+                transaction.objectStore('accounts').clear();
+                transaction.objectStore('transactions').clear();
+                transaction.objectStore('profile').clear();
+                transaction.objectStore('settings').clear();
+                
+                transaction.oncomplete = () => resolve();
+                transaction.onerror = () => reject(transaction.error);
+            });
+        }
+        
+        function saveProfile(profile) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['profile'], 'readwrite');
+                const store = transaction.objectStore('profile');
+                const request = store.put({ id: 1, ...profile });
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        function getProfile() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['profile'], 'readonly');
+                const store = transaction.objectStore('profile');
+                const request = store.get(1);
+                
+                request.onsuccess = () => resolve(request.result || {});
+                request.onerror = () => reject(request.error);
+            });
+        }
+        
+        // ========================================
+        // UI FUNCTIONS
+        // ========================================
+        
+        let currentScreen = 'homeScreen';
+        let currentAccountId = null;
+        
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.add('hidden');
+            });
+            
+            // Show selected screen
+            document.getElementById(screenId).classList.remove('hidden');
+            currentScreen = screenId;
+            
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-primary');
+                btn.classList.add('text-gray-400');
+            });
+            
+            // Load screen data
+            switch(screenId) {
+                case 'homeScreen':
+                    loadHomeScreen();
+                    break;
+                case 'addEntryScreen':
+                    loadAddEntryScreen();
+                    break;
+                case 'insightsScreen':
+                    loadInsightsScreen();
+                    break;
+                case 'historyScreen':
+                    loadHistoryScreen();
+                    break;
+                case 'profileScreen':
+                    loadProfileScreen();
+                    break;
+            }
+        }
+        
+        async function loadHomeScreen() {
+            const accounts = await getAllAccounts();
+            const accountsList = document.getElementById('accountsList');
+            accountsList.innerHTML = '';
+            
+            let totalBalance = 0;
+            
+            accounts.forEach(account => {
+                totalBalance += account.balance;
+                
+                const accountCard = document.createElement('div');
+                accountCard.className = 'bg-white rounded-2xl p-4 card-shadow cursor-pointer hover:shadow-lg transition fade-in';
+                accountCard.onclick = () => showAccountDetail(account.id);
+                
+                accountCard.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center text-2xl mr-4" style="background: ${account.color}20">
+                                ${account.icon}
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">${account.name}</h4>
+                                <p class="text-sm text-gray-500">Balance</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-lg" style="color: ${account.color}">₨ ${account.balance.toFixed(2)}</p>
+                        </div>
+                    </div>
+                `;
+                
+                accountsList.appendChild(accountCard);
+            });
+            
+            document.getElementById('totalBalance').textContent = `₨ ${totalBalance.toFixed(2)}`;
+        }
+        
+        async function loadAddEntryScreen() {
+            const accounts = await getAllAccounts();
+            const fromAccountSelect = document.getElementById('fromAccount');
+            const toAccountSelect = document.getElementById('toAccount');
+            
+            fromAccountSelect.innerHTML = '';
+            toAccountSelect.innerHTML = '';
+            
+            accounts.forEach(account => {
+                const option1 = document.createElement('option');
+                option1.value = account.id;
+                option1.textContent = `${account.icon} ${account.name}`;
+                fromAccountSelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = account.id;
+                option2.textContent = `${account.icon} ${account.name}`;
+                toAccountSelect.appendChild(option2);
+            });
+        }
+        
+        async function showAccountDetail(accountId) {
+            currentAccountId = accountId;
+            const account = await getAccount(accountId);
+            
+            document.getElementById('accountDetailName').textContent = account.name;
+            document.getElementById('accountDetailBalance').textContent = `₨ ${account.balance.toFixed(2)}`;
+            document.getElementById('accountTotalAdded').textContent = `₨ ${account.totalAdded.toFixed(2)}`;
+            document.getElementById('accountTotalUsed').textContent = `₨ ${account.totalUsed.toFixed(2)}`;
+            
+            // Load transactions
+            const transactions = await getAccountTransactions(accountId);
+            const transactionsList = document.getElementById('accountTransactionsList');
+            transactionsList.innerHTML = '';
+            
+            if (transactions.length === 0) {
+                transactionsList.innerHTML = '<p class="text-gray-500 text-center py-4">No transactions yet</p>';
+            } else {
+                transactions.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(tx => {
+                    const txElement = document.createElement('div');
+                    txElement.className = 'flex justify-between items-center p-3 bg-gray-50 rounded-xl';
+                    
+                    const typeColor = tx.type === 'add' ? 'text-green-600' : 'text-red-600';
+                    const typeSymbol = tx.type === 'add' ? '+' : '-';
+                    
+                    txElement.innerHTML = `
+                        <div>
+                            <p class="font-medium text-gray-800">${tx.note || (tx.type === 'add' ? 'Money Added' : 'Money Used')}</p>
+                            <p class="text-xs text-gray-500">${new Date(tx.date).toLocaleDateString()}</p>
+                        </div>
+                        <p class="font-bold ${typeColor}">${typeSymbol} ₨ ${tx.amount.toFixed(2)}</p>
+                    `;
+                    
+                    transactionsList.appendChild(txElement);
+                });
+            }
+            
+            // Load chart
+            loadAccountChart(transactions);
+            
+            showScreen('accountDetailScreen');
+        }
+        
+        function loadAccountChart(transactions) {
+            const ctx = document.getElementById('accountChart');
+            
+            // Destroy existing chart if any
+            if (window.accountChartInstance) {
+                window.accountChartInstance.destroy();
+            }
+            
+            // Get monthly data
+            const monthlyData = {};
+            const currentYear = new Date().getFullYear();
+            
+            for (let i = 0; i < 6; i++) {
+                const month = new Date();
+                month.setMonth(month.getMonth() - i);
+                const monthKey = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}`;
+                monthlyData[monthKey] = { income: 0, expense: 0 };
+            }
+            
+            transactions.forEach(tx => {
+                const date = new Date(tx.date);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                
+                if (monthlyData[monthKey]) {
+                    if (tx.type === 'add') {
+                        monthlyData[monthKey].income += tx.amount;
+                    } else if (tx.type === 'use') {
+                        monthlyData[monthKey].expense += tx.amount;
+                    }
+                }
+            });
+            
+            const labels = Object.keys(monthlyData).reverse().map(key => {
+                const [year, month] = key.split('-');
+                const date = new Date(year, parseInt(month) - 1);
+                return date.toLocaleDateString('en-US', { month: 'short' });
+            });
+            
+            const incomeData = Object.values(monthlyData).reverse().map(d => d.income);
+            const expenseData = Object.values(monthlyData).reverse().map(d => d.expense);
+            
+            window.accountChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: incomeData,
+                            backgroundColor: 'rgba(76, 175, 80, 0.5)',
+                            borderColor: 'rgba(76, 175, 80, 1)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Expense',
+                            data: expenseData,
+                            backgroundColor: 'rgba(244, 67, 54, 0.5)',
+                            borderColor: 'rgba(244, 67, 54, 1)',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        async function loadInsightsScreen() {
+            const transactions = await getAllTransactions();
+            
+            let totalSpending = 0;
+            const monthlyIncome = {};
+            const monthlyExpense = {};
+            const categories = {};
+            
+            // Initialize last 6 months
+            for (let i = 0; i < 6; i++) {
+                const month = new Date();
+                month.setMonth(month.getMonth() - i);
+                const monthKey = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}`;
+                monthlyIncome[monthKey] = 0;
+                monthlyExpense[monthKey] = 0;
+            }
+            
+            transactions.forEach(tx => {
+                const date = new Date(tx.date);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                
+                if (tx.type === 'add') {
+                    if (monthlyIncome[monthKey] !== undefined) {
+                        monthlyIncome[monthKey] += tx.amount;
+                    }
+                } else if (tx.type === 'use') {
+                    totalSpending += tx.amount;
+                    if (monthlyExpense[monthKey] !== undefined) {
+                        monthlyExpense[monthKey] += tx.amount;
+                    }
+                    
+                    // Category tracking
+                    const category = tx.note || 'Other';
+                    categories[category] = (categories[category] || 0) + tx.amount;
+                }
+            });
+            
+            document.getElementById('totalSpending').textContent = `₨ ${totalSpending.toFixed(2)}`;
+            
+            // Load Income Chart
+            loadIncomeChart(monthlyIncome);
+            
+            // Load Expense Chart
+            loadExpenseChart(monthlyExpense);
+            
+            // Load Category Summary
+            loadCategorySummary(categories);
+        }
+        
+        function loadIncomeChart(monthlyIncome) {
+            const ctx = document.getElementById('incomeChart');
+            
+            if (window.incomeChartInstance) {
+                window.incomeChartInstance.destroy();
+            }
+            
+            const labels = Object.keys(monthlyIncome).reverse().map(key => {
+                const [year, month] = key.split('-');
+                const date = new Date(year, parseInt(month) - 1);
+                return date.toLocaleDateString('en-US', { month: 'short' });
+            });
+            
+            const data = Object.values(monthlyIncome).reverse();
+            
+            window.incomeChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Monthly Income',
+                        data: data,
+                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                        borderColor: 'rgba(76, 175, 80, 1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function loadExpenseChart(monthlyExpense) {
+            const ctx = document.getElementById('expenseChart');
+            
+            if (window.expenseChartInstance) {
+                window.expenseChartInstance.destroy();
+            }
+            
+            const labels = Object.keys(monthlyExpense).reverse().map(key => {
+                const [year, month] = key.split('-');
+                const date = new Date(year, parseInt(month) - 1);
+                return date.toLocaleDateString('en-US', { month: 'short' });
+            });
+            
+            const data = Object.values(monthlyExpense).reverse();
+            
+            window.expenseChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Monthly Expenses',
+                        data: data,
+                        backgroundColor: 'rgba(244, 67, 54, 0.2)',
+                        borderColor: 'rgba(244, 67, 54, 1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function loadCategorySummary(categories) {
+            const container = document.getElementById('categorySummary');
+            container.innerHTML = '';
+            
+            const sortedCategories = Object.entries(categories).sort((a, b) => b[1] - a[1]);
+            
+            if (sortedCategories.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">No expenses yet</p>';
+                return;
+            }
+            
+            const total = sortedCategories.reduce((sum, [_, amount]) => sum + amount, 0);
+            
+            sortedCategories.forEach(([category, amount]) => {
+                const percentage = (amount / total * 100).toFixed(1);
+                
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center';
+                item.innerHTML = `
+                    <div class="flex-1">
+                        <p class="font-medium text-gray-800">${category}</p>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-primary h-2 rounded-full" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                    <div class="ml-4 text-right">
+                        <p class="font-bold text-gray-800">₨ ${amount.toFixed(2)}</p>
+                        <p class="text-xs text-gray-500">${percentage}%</p>
+                    </div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+        
+        async function loadHistoryScreen() {
+            const accounts = await getAllAccounts();
+            const filterAccountSelect = document.getElementById('filterAccount');
+            
+            filterAccountSelect.innerHTML = '<option value="all">All Accounts</option>';
+            accounts.forEach(account => {
+                const option = document.createElement('option');
+                option.value = account.id;
+                option.textContent = `${account.icon} ${account.name}`;
+                filterAccountSelect.appendChild(option);
+            });
+            
+            await displayAllTransactions();
+        }
+        
+        async function displayAllTransactions(filters = {}) {
+            const transactions = await getAllTransactions();
+            const accounts = await getAllAccounts();
+            const accountMap = {};
+            
+            accounts.forEach(account => {
+                accountMap[account.id] = account;
+            });
+            
+            let filteredTransactions = transactions;
+            
+            // Apply filters
+            if (filters.accountId && filters.accountId !== 'all') {
+                filteredTransactions = filteredTransactions.filter(tx => 
+                    tx.accountId === parseInt(filters.accountId) || tx.toAccountId === parseInt(filters.accountId)
+                );
+            }
+            
+            if (filters.type && filters.type !== 'all') {
+                filteredTransactions = filteredTransactions.filter(tx => tx.type === filters.type);
+            }
+            
+            if (filters.date) {
+                filteredTransactions = filteredTransactions.filter(tx => {
+                    const txDate = new Date(tx.date).toISOString().split('T')[0];
+                    return txDate === filters.date;
+                });
+            }
+            
+            // Sort by date (newest first)
+            filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            const container = document.getElementById('allTransactionsList');
+            container.innerHTML = '';
+            
+            if (filteredTransactions.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No transactions found</p>';
+                return;
+            }
+            
+            filteredTransactions.forEach(tx => {
+                const account = accountMap[tx.accountId];
+                const toAccount = tx.toAccountId ? accountMap[tx.toAccountId] : null;
+                
+                const txCard = document.createElement('div');
+                txCard.className = 'bg-white rounded-2xl p-4 card-shadow';
+                
+                let typeText = '';
+                let typeColor = '';
+                let amountSymbol = '';
+                
+                if (tx.type === 'add') {
+                    typeText = 'Money Added';
+                    typeColor = 'text-green-600';
+                    amountSymbol = '+';
+                } else if (tx.type === 'use') {
+                    typeText = 'Money Used';
+                    typeColor = 'text-red-600';
+                    amountSymbol = '-';
+                } else if (tx.type === 'transfer') {
+                    typeText = 'Transfer';
+                    typeColor = 'text-blue-600';
+                    amountSymbol = '';
+                }
+                
+                txCard.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl mr-3" style="background: ${account.color}20">
+                                ${account.icon}
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-800">${account.name}</p>
+                                <p class="text-xs text-gray-500">${typeText}</p>
+                            </div>
+                        </div>
+                        <p class="font-bold ${typeColor}">${amountSymbol} ₨ ${tx.amount.toFixed(2)}</p>
+                    </div>
+                    ${tx.note ? `<p class="text-sm text-gray-600 mb-2">${tx.note}</p>` : ''}
+                    ${toAccount ? `<p class="text-xs text-gray-500">To: ${toAccount.icon} ${toAccount.name}</p>` : ''}
+                    <p class="text-xs text-gray-400 mt-2">${new Date(tx.date).toLocaleString()}</p>
+                `;
+                
+                container.appendChild(txCard);
+            });
+        }
+        
+        async function loadProfileScreen() {
+            const profile = await getProfile();
+            
+            if (profile.displayName) {
+                document.getElementById('displayName').value = profile.displayName;
+            }
+            
+            if (profile.image) {
+                document.getElementById('profileImage').src = profile.image;
+                document.getElementById('profileImage').classList.remove('hidden');
+                document.getElementById('profilePlaceholder').classList.add('hidden');
+                
+                // Update header profile icon
+                const headerIcon = document.getElementById('profileIcon');
+                headerIcon.innerHTML = `<img src="${profile.image}" class="w-full h-full object-cover" alt="Profile">`;
+            }
+        }
+        
+        // ========================================
+        // TRANSACTION HANDLERS
+        // ========================================
+        
+        document.getElementById('transactionType').addEventListener('change', function() {
+            const toAccountDiv = document.getElementById('toAccountDiv');
+            if (this.value === 'transfer') {
+                toAccountDiv.classList.remove('hidden');
+            } else {
+                toAccountDiv.classList.add('hidden');
+            }
+        });
+        
+        document.getElementById('addEntryForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const type = document.getElementById('transactionType').value;
+            const fromAccountId = parseInt(document.getElementById('fromAccount').value);
+            const toAccountId = type === 'transfer' ? parseInt(document.getElementById('toAccount').value) : null;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const note = document.getElementById('note').value;
+            
+            if (amount <= 0) {
+                showToast('Amount must be greater than 0');
+                return;
+            }
+            
+            if (type === 'transfer' && fromAccountId === toAccountId) {
+                showToast('Cannot transfer to the same account');
+                return;
+            }
+            
+            const fromAccount = await getAccount(fromAccountId);
+            
+            if (type === 'use' && fromAccount.balance < amount) {
+                showToast('Insufficient balance');
+                return;
+            }
+            
+            if (type === 'transfer' && fromAccount.balance < amount) {
+                showToast('Insufficient balance for transfer');
+                return;
+            }
+            
+            // Create transaction
+            const transaction = {
+                accountId: fromAccountId,
+                toAccountId: toAccountId,
+                type: type,
+                amount: amount,
+                note: note,
+                date: new Date().toISOString()
+            };
+            
+            await saveTransaction(transaction);
+            
+            // Update account balances
+            if (type === 'add') {
+                fromAccount.balance += amount;
+                fromAccount.totalAdded += amount;
+            } else if (type === 'use') {
+                fromAccount.balance -= amount;
+                fromAccount.totalUsed += amount;
+            } else if (type === 'transfer') {
+                fromAccount.balance -= amount;
+                fromAccount.totalUsed += amount;
+                
+                const toAccount = await getAccount(toAccountId);
+                toAccount.balance += amount;
+                toAccount.totalAdded += amount;
+                await saveAccount(toAccount);
+            }
+            
+            await saveAccount(fromAccount);
+            
+            // Reset form
+            document.getElementById('addEntryForm').reset();
+            
+            showToast('Transaction successful!');
+            showScreen('homeScreen');
+        });
+        
+        // ========================================
+        // QUICK ACTIONS
+        // ========================================
+        
+        async function quickAddMoney() {
+            const amount = prompt('Enter amount to add:');
+            if (amount && parseFloat(amount) > 0) {
+                const account = await getAccount(currentAccountId);
+                const transaction = {
+                    accountId: currentAccountId,
+                    type: 'add',
+                    amount: parseFloat(amount),
+                    note: 'Quick Add',
+                    date: new Date().toISOString()
+                };
+                
+                await saveTransaction(transaction);
+                
+                account.balance += parseFloat(amount);
+                account.totalAdded += parseFloat(amount);
+                await saveAccount(account);
+                
+                showToast('Money added successfully!');
+                showAccountDetail(currentAccountId);
+            }
+        }
+        
+        async function quickUseMoney() {
+            const amount = prompt('Enter amount to use:');
+            if (amount && parseFloat(amount) > 0) {
+                const account = await getAccount(currentAccountId);
+                
+                if (account.balance < parseFloat(amount)) {
+                    showToast('Insufficient balance');
+                    return;
+                }
+                
+                const transaction = {
+                    accountId: currentAccountId,
+                    type: 'use',
+                    amount: parseFloat(amount),
+                    note: 'Quick Use',
+                    date: new Date().toISOString()
+                };
+                
+                await saveTransaction(transaction);
+                
+                account.balance -= parseFloat(amount);
+                account.totalUsed += parseFloat(amount);
+                await saveAccount(account);
+                
+                showToast('Money used successfully!');
+                showAccountDetail(currentAccountId);
+            }
+        }
+        
+        async function resetAccount() {
+            if (confirm('Are you sure you want to reset this account? All transactions will be deleted.')) {
+                const account = await getAccount(currentAccountId);
+                
+                // Delete all transactions
+                await deleteAccountTransactions(currentAccountId);
+                
+                // Reset account balances
+                account.balance = 0;
+                account.totalAdded = 0;
+                account.totalUsed = 0;
+                await saveAccount(account);
+                
+                showToast('Account reset successfully!');
+                showAccountDetail(currentAccountId);
+            }
+        }
+        
+        // ========================================
+        // PDF EXPORT
+        // ========================================
+        
+        async function exportAccountPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const account = await getAccount(currentAccountId);
+            const transactions = await getAccountTransactions(currentAccountId);
+            
+            // Title
+            doc.setFontSize(20);
+            doc.text('KHATA', 105, 20, { align: 'center' });
+            
+            doc.setFontSize(16);
+            doc.text(account.name, 105, 30, { align: 'center' });
+            
+            // Account Summary
+            doc.setFontSize(12);
+            doc.text(`Current Balance: Rs ${account.balance.toFixed(2)}`, 20, 45);
+            doc.text(`Total Income: Rs ${account.totalAdded.toFixed(2)}`, 20, 55);
+            doc.text(`Total Expense: Rs ${account.totalUsed.toFixed(2)}`, 20, 65);
+            
+            // Transactions
+            doc.setFontSize(14);
+            doc.text('Transactions', 20, 80);
+            
+            let y = 90;
+            doc.setFontSize(10);
+            
+            transactions.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach((tx, index) => {
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+                
+                const date = new Date(tx.date).toLocaleDateString();
+                const type = tx.type === 'add' ? 'ADD' : 'USE';
+                const amount = tx.type === 'add' ? `+${tx.amount.toFixed(2)}` : `-${tx.amount.toFixed(2)}`;
+                const note = tx.note || '-';
+                
+                doc.text(`${date} | ${type} | Rs ${amount} | ${note}`, 20, y);
+                y += 7;
+            });
+            
+            // Footer
+            doc.setFontSize(8);
+            doc.text('Made by Faiq Sheikh', 105, 285, { align: 'center' });
+            
+            doc.save(`${account.name}_Report.pdf`);
+            showToast('PDF downloaded successfully!');
+        }
+        
+        async function downloadMonthlyReport() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const transactions = await getAllTransactions();
+            const accounts = await getAllAccounts();
+            
+            // Get current month transactions
+            const now = new Date();
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            
+            const monthTransactions = transactions.filter(tx => {
+                const txDate = new Date(tx.date);
+                return txDate >= monthStart && txDate <= monthEnd;
+            });
+            
+            let totalIncome = 0;
+            let totalExpense = 0;
+            
+            monthTransactions.forEach(tx => {
+                if (tx.type === 'add') totalIncome += tx.amount;
+                if (tx.type === 'use') totalExpense += tx.amount;
+            });
+            
+            // Title
+            doc.setFontSize(20);
+            doc.text('KHATA', 105, 20, { align: 'center' });
+            
+            doc.setFontSize(14);
+            doc.text('Monthly Report', 105, 30, { align: 'center' });
+            doc.text(now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }), 105, 40, { align: 'center' });
+            
+            // Summary
+            doc.setFontSize(12);
+            doc.text(`Total Income: Rs ${totalIncome.toFixed(2)}`, 20, 55);
+            doc.text(`Total Expense: Rs ${totalExpense.toFixed(2)}`, 20, 65);
+            doc.text(`Net: Rs ${(totalIncome - totalExpense).toFixed(2)}`, 20, 75);
+            
+            // Transactions
+            doc.setFontSize(14);
+            doc.text('Transactions', 20, 90);
+            
+            let y = 100;
+            doc.setFontSize(10);
+            
+            monthTransactions.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(tx => {
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+                
+                const account = accounts.find(a => a.id === tx.accountId);
+                const date = new Date(tx.date).toLocaleDateString();
+                const type = tx.type === 'add' ? 'ADD' : tx.type === 'use' ? 'USE' : 'TRANSFER';
+                const amount = tx.type === 'add' ? `+${tx.amount.toFixed(2)}` : `-${tx.amount.toFixed(2)}`;
+                
+                doc.text(`${date} | ${account.name} | ${type} | Rs ${amount}`, 20, y);
+                y += 7;
+            });
+            
+            // Footer
+            doc.setFontSize(8);
+            doc.text('Made by Faiq Sheikh', 105, 285, { align: 'center' });
+            
+            doc.save(`Monthly_Report_${now.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}.pdf`);
+            showToast('PDF downloaded successfully!');
+        }
+        
+        // ========================================
+        // PROFILE FUNCTIONS
+        // ========================================
+        
+        document.getElementById('profileImageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async function(event) {
+                    const imageData = event.target.result;
+                    
+                    document.getElementById('profileImage').src = imageData;
+                    document.getElementById('profileImage').classList.remove('hidden');
+                    document.getElementById('profilePlaceholder').classList.add('hidden');
+                    
+                    // Update header icon
+                    const headerIcon = document.getElementById('profileIcon');
+                    headerIcon.innerHTML = `<img src="${imageData}" class="w-full h-full object-cover" alt="Profile">`;
+                    
+                    // Save to IndexedDB
+                    const profile = await getProfile();
+                    profile.image = imageData;
+                    await saveProfile(profile);
+                    
+                    showToast('Profile image updated!');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        async function saveDisplayName() {
+            const name = document.getElementById('displayName').value;
+            if (name.trim()) {
+                const profile = await getProfile();
+                profile.displayName = name;
+                await saveProfile(profile);
+                showToast('Name saved successfully!');
+            }
+        }
+        
+        async function backupData() {
+            const accounts = await getAllAccounts();
+            const transactions = await getAllTransactions();
+            const profile = await getProfile();
+            
+            const backup = {
+                version: '1.0.0',
+                date: new Date().toISOString(),
+                accounts: accounts,
+                transactions: transactions,
+                profile: profile
+            };
+            
+            const dataStr = JSON.stringify(backup, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `khata_backup_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            showToast('Backup created successfully!');
+        }
+        
+        document.getElementById('restoreInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async function(event) {
+                    try {
+                        const backup = JSON.parse(event.target.result);
+                        
+                        if (confirm('This will replace all current data. Continue?')) {
+                            // Clear existing data
+                            await clearAllData();
+                            
+                            // Restore accounts
+                            for (const account of backup.accounts) {
+                                await saveAccount(account);
+                            }
+                            
+                            // Restore transactions
+                            for (const transaction of backup.transactions) {
+                                await saveTransaction(transaction);
+                            }
+                            
+                            // Restore profile
+                            if (backup.profile) {
+                                await saveProfile(backup.profile);
+                            }
+                            
+                            showToast('Data restored successfully!');
+                            location.reload();
+                        }
+                    } catch (error) {
+                        showToast('Invalid backup file');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+        
+        async function resetAllData() {
+            if (confirm('This will delete ALL data permanently. Are you sure?')) {
+                if (confirm('Last chance! This cannot be undone.')) {
+                    await clearAllData();
+                    await initializeDefaultAccounts();
+                    showToast('All data reset successfully!');
+                    location.reload();
+                }
+            }
+        }
+        
+        // ========================================
+        // FILTERS
+        // ========================================
+        
+        async function applyFilters() {
+            const filters = {
+                accountId: document.getElementById('filterAccount').value,
+                type: document.getElementById('filterType').value,
+                date: document.getElementById('filterDate').value
+            };
+            
+            await displayAllTransactions(filters);
+        }
+        
+        async function clearFilters() {
+            document.getElementById('filterAccount').value = 'all';
+            document.getElementById('filterType').value = 'all';
+            document.getElementById('filterDate').value = '';
+            
+            await displayAllTransactions();
+        }
+        
+        // ========================================
+        // UTILITY FUNCTIONS
+        // ========================================
+        
+        function showToast(message) {
+            const toast = document.getElementById('successToast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+        
+        // ========================================
+        // INITIALIZATION
+        // ========================================
+        
+        async function init() {
+            try {
+                await initDB();
+                await initializeDefaultAccounts();
+                
+                // Show splash screen for 3 seconds
+                setTimeout(() => {
+                    document.getElementById('splashScreen').classList.add('hidden');
+                    document.getElementById('appContainer').classList.remove('hidden');
+                    document.getElementById('bottomNav').classList.remove('hidden');
+                    
+                    loadHomeScreen();
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                alert('Failed to initialize app. Please refresh the page.');
+            }
+        }
+        
+        // Start the app
+        init();
+        
+        // Profile icon click handler
+        document.getElementById('profileIcon').addEventListener('click', function() {
+            showScreen('profileScreen');
+        });
+    </script>
+</body>
+</html>
